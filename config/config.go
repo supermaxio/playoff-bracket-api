@@ -7,9 +7,11 @@ import (
 )
 
 var mongoDbConnection string
+var jwtKey string
 
 func Setup() {
 	mongoDbConnection = setMongoDbConnection()
+	jwtKey = setJwtKey()
 }
 
 func setMongoDbConnection() string {
@@ -18,4 +20,12 @@ func setMongoDbConnection() string {
 
 func GetMongoDbConnection() string {
 	return mongoDbConnection
+}
+
+func setJwtKey() string {
+	return os.Getenv(constants.JWT_KEY_ENV)
+}
+
+func GetJwtKey() string {
+	return jwtKey
 }

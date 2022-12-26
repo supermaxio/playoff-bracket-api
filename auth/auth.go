@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/supermaxio/nflplayoffbracket/config"
 	"github.com/supermaxio/nflplayoffbracket/database"
 	"github.com/supermaxio/nflplayoffbracket/types"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // Create the JWT key used to create the signature
-var jwtKey = []byte("my_secret_key")
+var jwtKey = []byte(config.GetJwtKey())
 
 // Create a struct to read the username and password from the request body
 type Credentials struct {
