@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/supermaxio/nflplayoffbracket/config"
+	"github.com/supermaxio/nflplayoffbracket/constants"
 	"github.com/supermaxio/nflplayoffbracket/database"
 	"github.com/supermaxio/nflplayoffbracket/types"
 	"golang.org/x/crypto/bcrypt"
@@ -121,17 +123,17 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Finally, we set the client cookie for "token" as the JWT we just generated
+	// Finally, we set the client cookie for constants.COOKIE_TOKEN as the JWT we just generated
 	// we also set an expiry time which is the same as the token itself
 	http.SetCookie(w, &http.Cookie{
-		Name:    "token",
+		Name:    constants.COOKIE_TOKEN,
 		Value:   tokenString,
 		Expires: expirationTime,
 	})
 }
 
 func RefreshHandler(w http.ResponseWriter, r *http.Request) {
-	c, err := r.Cookie("token")
+	c, err := r.Cookie(constants.COOKIE_TOKEN)
 	if err != nil {
 		if err == http.ErrNoCookie {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -142,7 +144,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tknStr := c.Value
 	claims := &Claims{}
-	jwtKey := config.GetJwtKey()
+	jwtKey := []byte(config.GetJwtKey())
 	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
@@ -180,7 +182,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Set the new token as the users `token` cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:    "token",
+		Name:    constants.COOKIE_TOKEN,
 		Value:   tokenString,
 		Expires: expirationTime,
 	})
@@ -189,7 +191,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 func Logout(w http.ResponseWriter, r *http.Request) {
 	// immediately clear the token cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:    "token",
+		Name:    constants.COOKIE_TOKEN,
 		Expires: time.Now(),
 	})
 }
@@ -197,13 +199,15 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 func JwtVerify(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// We can obtain the session token from the requests cookies, which come with every request
-		c, err := r.Cookie("token")
+		c, err := r.Cookie(constants.COOKIE_TOKEN)
+
 		if err != nil {
 			if err == http.ErrNoCookie {
 				// If the cookie is not set, return an unauthorized status
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
+
 			// For any other type of error, return a bad request status
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -215,7 +219,7 @@ func JwtVerify(next http.Handler) http.Handler {
 		// Initialize a new instance of `Claims`
 		claims := &Claims{}
 
-		jwtKey := config.GetJwtKey()
+		jwtKey := []byte(config.GetJwtKey())
 		// Parse the JWT string and store the result in `claims`.
 		// Note that we are passing the key in this method as well. This method will return an error
 		// if the token is invalid (if it has expired according to the expiry time we set on sign in),
@@ -228,6 +232,7 @@ func JwtVerify(next http.Handler) http.Handler {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
+			log.Println(err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
