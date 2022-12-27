@@ -29,6 +29,11 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+type Token struct {
+	Token          string    `json:"token"`
+	ExpirationTime time.Time `json:"expiration_time"`
+}
+
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var user types.User
 	body, _ := ioutil.ReadAll(r.Body)
@@ -122,6 +127,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	json.NewEncoder(w).Encode(Token{tokenString, expirationTime})
 	// Finally, we set the client cookie for constants.COOKIE_TOKEN as the JWT we just generated
 	// we also set an expiry time which is the same as the token itself
 	http.SetCookie(w, &http.Cookie{
@@ -179,6 +185,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	json.NewEncoder(w).Encode(Token{tokenString, expirationTime})
 	// Set the new token as the users `token` cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:    constants.COOKIE_TOKEN,

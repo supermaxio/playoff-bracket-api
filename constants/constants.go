@@ -15,8 +15,8 @@ const (
 	ENV_STAGE = "stage"
 	ENV_PROD  = "prod"
 
-	DOMAIN_LOCAL = "localhost"
+	DOMAIN_LOCAL  = "localhost"
 	DOMAIN_DOCKER = "0.0.0.0"
 
-	COOKIE_TOKEN = "nfl_playoff_bracket_token"
+	COOKIE_TOKEN = "_auth"
 )
