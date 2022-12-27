@@ -8,4 +8,4 @@ RUN go mod download
 # Expose ports
 EXPOSE 8000
 # Run Go program, just like locally
-ENTRYPOINT ["go","run","cmd/playoff_bracket/main.go"]
+CMD ["go","run","cmd/playoff_bracket/main.go"]
