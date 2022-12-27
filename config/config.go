@@ -8,10 +8,12 @@ import (
 
 var mongoDbConnection string
 var jwtKey string
+var port string
 
 func Setup() {
 	mongoDbConnection = setMongoDbConnection()
 	jwtKey = setJwtKey()
+	port = setPort()
 }
 
 func setMongoDbConnection() string {
@@ -28,4 +30,12 @@ func setJwtKey() string {
 
 func GetJwtKey() string {
 	return jwtKey
+}
+
+func setPort() string {
+	return os.Getenv(constants.PORT_ENV)
+}
+
+func GetPort() string {
+	return port
 }
