@@ -30,11 +30,6 @@ type Claims struct {
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", r.RemoteAddr)
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT")
-	w.Header().Set("Access-Control-Allow-Headers", "append,delete,entries,foreach,get,has,keys,set,values,Authorization")
 	var user types.User
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &user)
@@ -76,10 +71,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 // Create the Signin handler
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", r.RemoteAddr)
-	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
 	var creds Credentials
 	var res types.ResponseResult
 
@@ -141,10 +132,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RefreshHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", r.RemoteAddr)
-	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
 	c, err := r.Cookie(constants.COOKIE_TOKEN)
 	if err != nil {
 		if err == http.ErrNoCookie {
@@ -201,10 +188,6 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", r.RemoteAddr)
-	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
 	// immediately clear the token cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:    constants.COOKIE_TOKEN,
@@ -266,9 +249,18 @@ func JwtVerify(next http.Handler) http.Handler {
 
 func CorsHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", r.RemoteAddr)
+		w.Header().Set("Content-Type", "text/plain")
+		switch config.GetEnv() {
+		case constants.ENV_PROD,
+			constants.ENV_STAGE:
+			w.Header().Set("Access-Control-Allow-Origin", r.RemoteAddr)
+		default:
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
+		}
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT")
 		w.Header().Set("Access-Control-Allow-Headers", "append,delete,entries,foreach,get,has,keys,set,values,Authorization,content-type")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
 		if r.Method == "OPTIONS" {
 			//handle preflight in here
 		} else {
