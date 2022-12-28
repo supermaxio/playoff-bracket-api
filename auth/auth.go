@@ -126,8 +126,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	json.NewEncoder(w).Encode(Token{tokenString, expirationTime})
 	// Finally, we set the client cookie for constants.COOKIE_TOKEN as the JWT we just generated
 	// we also set an expiry time which is the same as the token itself
 	http.SetCookie(w, &http.Cookie{
@@ -135,6 +133,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Value:   tokenString,
 		Expires: expirationTime,
 	})
+
+	json.NewEncoder(w).Encode(Token{tokenString, expirationTime})
 }
 
 func RefreshHandler(w http.ResponseWriter, r *http.Request) {
@@ -184,14 +184,14 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	json.NewEncoder(w).Encode(Token{tokenString, expirationTime})
 	// Set the new token as the users `token` cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:    constants.COOKIE_TOKEN,
 		Value:   tokenString,
 		Expires: expirationTime,
 	})
+
+	json.NewEncoder(w).Encode(Token{tokenString, expirationTime})
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {

@@ -18,5 +18,5 @@ const (
 	DOMAIN_LOCAL  = "localhost"
 	DOMAIN_DOCKER = "0.0.0.0"
 
-	COOKIE_TOKEN = "_auth"
+	COOKIE_TOKEN = "playoff_bracket_token"
 )
