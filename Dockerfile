@@ -1,5 +1,5 @@
 # Base image, golang 1.18
-FROM golang:1.19.3
+FROM golang:1.19.3-alpine
 WORKDIR /workspace
 # Copy all files into the image
 COPY . .
