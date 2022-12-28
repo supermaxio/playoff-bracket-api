@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -257,13 +258,7 @@ func JwtVerify(next http.Handler) http.Handler {
 func CorsHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
-		switch config.GetEnv() {
-		case constants.ENV_PROD,
-			constants.ENV_STAGE:
-			w.Header().Set("Access-Control-Allow-Origin", r.RemoteAddr)
-		default:
-			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
-		}
+		w.Header().Set("Access-Control-Allow-Origin", strings.TrimRight(r.Referer(), "/"))
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT")
 		w.Header().Set("Access-Control-Allow-Headers", "append,delete,entries,foreach,get,has,keys,set,values,Authorization,content-type")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
