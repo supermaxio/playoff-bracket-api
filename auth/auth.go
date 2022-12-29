@@ -39,10 +39,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var user types.User
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &user)
-	var res types.ResponseResult
 	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
+		httpError(w, r, http.StatusInternalServerError, "Internal server error", err)
 		return
 	}
 
@@ -52,39 +50,33 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 5)
 
 		if err != nil {
-			res.Error = "Error While Hashing Password, Try Again"
-			json.NewEncoder(w).Encode(res)
+			httpError(w, r, http.StatusBadRequest, "Error While Hashing Password, Try Again", err)
 			return
 		}
 		user.Password = string(hash)
 
 		_ = database.CreateUser(user)
 		if err != nil {
-			res.Error = "Error While Creating User, Try Again"
-			json.NewEncoder(w).Encode(res)
+			httpError(w, r, http.StatusBadRequest, "Error While Hashing Password, Try Again", err)
 			return
 		}
 
-		res.Result = "Register Successful"
-		json.NewEncoder(w).Encode(res)
+		httpError(w, r, http.StatusOK, "Register Successful", err)
 		return
 	}
 
-	res.Result = "Username already exists!!"
-	json.NewEncoder(w).Encode(res)
+	httpError(w, r, http.StatusBadRequest, "Username already exists!!", err)
 	return
 }
 
 // Create the Signin handler
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
-	var res types.ResponseResult
 
 	// Get the JSON body and decode into credentials
 	err := json.NewDecoder(r.Body).Decode(&creds)
 	if err != nil {
-		// If the structure of the body is wrong, return an HTTP error
-		w.WriteHeader(http.StatusBadRequest)
+		httpError(w, r, http.StatusBadRequest, "The structure of the body is wrong", err)
 		return
 	}
 
@@ -92,17 +84,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	resultUser := database.FindUser(creds.Username)
 	// if err != nil {
 	if resultUser.Username == "" {
-		res.Error = "Invalid username"
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(res)
+		httpError(w, r, http.StatusBadRequest, "Invalid username", err)
 		return
 	}
 
 	errf := bcrypt.CompareHashAndPassword([]byte(resultUser.Password), []byte(creds.Password))
 	if errf != nil && errf == bcrypt.ErrMismatchedHashAndPassword {
-		var res = map[string]interface{}{"status": false, "message": "Invalid login credentials. Please try again"}
+		httpError(w, r, http.StatusUnauthorized, "Invalid login credentials. Please try again", err)
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(res)
 		return
 	}
 
@@ -124,7 +113,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	tokenString, err := token.SignedString([]byte(config.GetJwtKey()))
 	if err != nil {
 		// If there is an error in creating the JWT return an internal server error
-		w.WriteHeader(http.StatusInternalServerError)
+		httpError(w, r, http.StatusInternalServerError, "Error signing token", err)
 		return
 	}
 	// Finally, we set the client cookie for constants.COOKIE_TOKEN as the JWT we just generated
@@ -142,10 +131,10 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie(constants.COOKIE_TOKEN)
 	if err != nil {
 		if err == http.ErrNoCookie {
-			w.WriteHeader(http.StatusUnauthorized)
+			httpError(w, r, http.StatusUnauthorized, "The cookie was not set", err)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		httpError(w, r, http.StatusBadRequest, "There was something wrong with the cookie", err)
 		return
 	}
 	tknStr := c.Value
@@ -156,14 +145,14 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			w.WriteHeader(http.StatusUnauthorized)
+			httpError(w, r, http.StatusUnauthorized, "Invalid signature", err)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		httpError(w, r, http.StatusBadRequest, "Bad request entry for token claim", err)
 		return
 	}
 	if !tkn.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
+		httpError(w, r, http.StatusUnauthorized, "Invalid token", err)
 		return
 	}
 	// (END) The code until this point is the same as the first part of the `Welcome` route
@@ -172,7 +161,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	// In this case, a new token will only be issued if the old token is within
 	// 30 seconds of expiry. Otherwise, return a bad request status
 	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {
-		w.WriteHeader(http.StatusBadRequest)
+		httpError(w, r, http.StatusBadRequest, "Not enough time has elapsed", err)
 		return
 	}
 
@@ -182,7 +171,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		httpError(w, r, http.StatusInternalServerError, "Error signing token", err)
 		return
 	}
 	// Set the new token as the users `token` cookie
@@ -207,16 +196,17 @@ func JwtVerify(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// We can obtain the session token from the requests cookies, which come with every request
 		c, err := r.Cookie(constants.COOKIE_TOKEN)
+		log.Println(c)
 
 		if err != nil {
 			if err == http.ErrNoCookie {
 				// If the cookie is not set, return an unauthorized status
-				w.WriteHeader(http.StatusUnauthorized)
+				httpError(w, r, http.StatusUnauthorized, "The cookie was not set", err)
 				return
 			}
 
 			// For any other type of error, return a bad request status
-			w.WriteHeader(http.StatusBadRequest)
+			httpError(w, r, http.StatusBadRequest, "There was something wrong with the cookie", err)
 			return
 		}
 
@@ -236,15 +226,15 @@ func JwtVerify(next http.Handler) http.Handler {
 		})
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
-				w.WriteHeader(http.StatusUnauthorized)
+				httpError(w, r, http.StatusUnauthorized, "Username or password are incorrect", err)
 				return
 			}
 			log.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
+			httpError(w, r, http.StatusBadRequest, "Invalid credentials", err)
 			return
 		}
 		if !tkn.Valid {
-			w.WriteHeader(http.StatusUnauthorized)
+			httpError(w, r, http.StatusUnauthorized, "Invalid token", err)
 			return
 		}
 		// Finally, return the welcome message to the user, along with their
@@ -257,7 +247,7 @@ func JwtVerify(next http.Handler) http.Handler {
 
 func CorsHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", strings.TrimRight(r.Referer(), "/"))
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT")
 		w.Header().Set("Access-Control-Allow-Headers", "append,delete,entries,foreach,get,has,keys,set,values,Authorization,content-type")
@@ -269,4 +259,25 @@ func CorsHandler(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		}
 	})
+}
+
+type errorResponse struct {
+	Message string `json:"message"`
+}
+
+func httpError(w http.ResponseWriter, r *http.Request, errorCode int, errorMessage string, err error) {
+	if err != nil {
+		log.Println(err.Error())
+	}
+	errResponse := errorResponse{
+		errorMessage,
+	}
+
+	w.WriteHeader(errorCode)
+	errBytes, marshalErr := json.Marshal(errResponse)
+	if marshalErr != nil {
+		log.Println(err)
+	}
+
+	w.Write(errBytes)
 }
