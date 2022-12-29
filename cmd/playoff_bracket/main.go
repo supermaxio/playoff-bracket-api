@@ -53,15 +53,11 @@ func main() {
 	sigquit := make(chan os.Signal, 1)
 
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
-	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
+	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/)
 	signal.Notify(sigint, syscall.SIGINT)
 	signal.Notify(sigterm, syscall.SIGTERM)
 	signal.Notify(sigkill, syscall.SIGKILL)
 	signal.Notify(sigquit, syscall.SIGQUIT)
-
-	// Create a deadline to wait for.
-	ctx, cancel := context.WithTimeout(context.Background(), wait)
-	defer cancel()
 
 	// Wait for the SIGTERM signal or the context to expire
 	select {
@@ -73,17 +69,16 @@ func main() {
 		log.Println("Received SIGKILL, shutting down...")
 	case <-sigquit:
 		log.Println("Received SIGQUIT, shutting down...")
-	case <-ctx.Done():
-		log.Println("Timeout exceeded, shutting down...")
 	}
+
+	// Create a deadline to wait for.
+	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	defer cancel()
 
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.
 	// go srv.Shutdown(ctx)
-	// Shut down the HTTP server gracefully
-	if err := server.Shutdown(ctx); err != nil {
-		log.Println(err)
-	}
+	server.Shutdown(ctx)
 
 	database.MongoDisconnect()
 	log.Println("shutting down")
