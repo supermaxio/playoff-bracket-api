@@ -47,12 +47,17 @@ func main() {
 		}
 	}()
 
+	sigint := make(chan os.Signal, 1)
 	sigterm := make(chan os.Signal, 1)
+	sigkill := make(chan os.Signal, 1)
+	sigquit := make(chan os.Signal, 1)
 
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
 	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
-	signal.Notify(sigterm, os.Interrupt)
+	signal.Notify(sigint, syscall.SIGINT)
 	signal.Notify(sigterm, syscall.SIGTERM)
+	signal.Notify(sigkill, syscall.SIGKILL)
+	signal.Notify(sigquit, syscall.SIGQUIT)
 
 	// Create a deadline to wait for.
 	ctx, cancel := context.WithTimeout(context.Background(), wait)
@@ -60,8 +65,14 @@ func main() {
 
 	// Wait for the SIGTERM signal or the context to expire
 	select {
+	case <-sigint:
+		log.Println("Received SIGINT, shutting down...")
 	case <-sigterm:
 		log.Println("Received SIGTERM, shutting down...")
+	case <-sigkill:
+		log.Println("Received SIGKILL, shutting down...")
+	case <-sigquit:
+		log.Println("Received SIGQUIT, shutting down...")
 	case <-ctx.Done():
 		log.Println("Timeout exceeded, shutting down...")
 	}
