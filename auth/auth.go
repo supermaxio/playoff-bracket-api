@@ -129,16 +129,26 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RefreshHandler(w http.ResponseWriter, r *http.Request) {
+	tknStr := ""
 	c, err := r.Cookie(constants.COOKIE_TOKEN)
 	if err != nil {
 		if err == http.ErrNoCookie {
-			httpError(w, r, http.StatusUnauthorized, "The cookie was not set", err)
-			return
+			// If the cookie is not set, first check if the authorization token is in the header
+			tknStr = util.BearerAuthHeader(r.Header.Get("Authorization"))
+			if r.Header.Get("Authorization") == "" {
+				httpError(w, r, http.StatusUnauthorized, "Missing authentication", err)
+				return
+			} else {
+				// For any other type of error, return a bad request status
+				httpError(w, r, http.StatusBadRequest, "There was something wrong with the cookie", err)
+				return
+			}
 		}
-		httpError(w, r, http.StatusBadRequest, "There was something wrong with the cookie", err)
-		return
+	} else {
+		// Get the JWT string from the cookie
+		tknStr = c.Value
 	}
-	tknStr := c.Value
+
 	claims := &Claims{}
 	jwtKey := []byte(config.GetJwtKey())
 	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
@@ -157,14 +167,6 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// (END) The code until this point is the same as the first part of the `Welcome` route
-
-	// We ensure that a new token is not issued until enough time has elapsed
-	// In this case, a new token will only be issued if the old token is within
-	// 30 seconds of expiry. Otherwise, return a bad request status
-	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {
-		httpError(w, r, http.StatusBadRequest, "Not enough time has elapsed", err)
-		return
-	}
 
 	// Now, create a new token for the current use, with a renewed expiration time
 	expirationTime := time.Now().Add(5 * time.Minute)
