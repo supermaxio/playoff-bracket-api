@@ -17,6 +17,7 @@ import (
 )
 
 func main() {
+	log.Println("starting up")
 	// Setup configurations
 	config.Setup()
 

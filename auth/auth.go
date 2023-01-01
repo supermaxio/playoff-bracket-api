@@ -14,6 +14,7 @@ import (
 	"github.com/supermaxio/nflplayoffbracket/constants"
 	"github.com/supermaxio/nflplayoffbracket/database"
 	"github.com/supermaxio/nflplayoffbracket/types"
+	"github.com/supermaxio/nflplayoffbracket/util"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -196,22 +197,25 @@ func JwtVerify(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// We can obtain the session token from the requests cookies, which come with every request
 		c, err := r.Cookie(constants.COOKIE_TOKEN)
-		log.Println(c)
+		tknStr := ""
 
 		if err != nil {
 			if err == http.ErrNoCookie {
-				// If the cookie is not set, return an unauthorized status
-				httpError(w, r, http.StatusUnauthorized, "The cookie was not set", err)
+				// If the cookie is not set, first check if the authorization token is in the header
+				tknStr = util.BearerAuthHeader(r.Header.Get("Authorization"))
+				if r.Header.Get("Authorization") == "" {
+					httpError(w, r, http.StatusUnauthorized, "Missing authentication", err)
+					return
+				}
+			} else {
+				// For any other type of error, return a bad request status
+				httpError(w, r, http.StatusBadRequest, "There was something wrong with the cookie", err)
 				return
 			}
-
-			// For any other type of error, return a bad request status
-			httpError(w, r, http.StatusBadRequest, "There was something wrong with the cookie", err)
-			return
+		} else {
+			// Get the JWT string from the cookie
+			tknStr = c.Value
 		}
-
-		// Get the JWT string from the cookie
-		tknStr := c.Value
 
 		// Initialize a new instance of `Claims`
 		claims := &Claims{}
