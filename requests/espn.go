@@ -2,28 +2,17 @@ package requests
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-
-	"net/http"
-	"time"
 
 	"github.com/supermaxio/nflplayoffbracket/types"
 )
 
-func EspnScoreboard() (types.Scoreboard, error) {
-	scoreboardResponse := types.Scoreboard{}
-	req, err := http.NewRequest("GET", "http://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", nil)
+func EspnScoreboard() (types.EspnScoreboard, error) {
+	scoreboardResponse := types.EspnScoreboard{}
+	resp, err := ApiGetRequest("http://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard")
 	if err != nil {
-		return types.Scoreboard{}, err
-	}
-
-	client := &http.Client{
-		Timeout: time.Second * 30,
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return types.Scoreboard{}, err
+		return types.EspnScoreboard{}, err
 	}
 
 	defer resp.Body.Close()
@@ -31,8 +20,26 @@ func EspnScoreboard() (types.Scoreboard, error) {
 
 	err = json.Unmarshal(body, &scoreboardResponse)
 	if err != nil {
-		return types.Scoreboard{}, err
+		return types.EspnScoreboard{}, err
 	}
 
 	return scoreboardResponse, nil
+}
+
+func EspnTeamRecord(teamId string) (types.EspnTeamRecord, error) {
+	teamRecordResponse := types.EspnTeamRecord{}
+	resp, err := ApiGetRequest(fmt.Sprintf("http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2022/types/2/teams/%s/record?lang=en&region=us", teamId))
+	if err != nil {
+		return types.EspnTeamRecord{}, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+
+	err = json.Unmarshal(body, &teamRecordResponse)
+	if err != nil {
+		return types.EspnTeamRecord{}, err
+	}
+
+	return teamRecordResponse, nil
 }

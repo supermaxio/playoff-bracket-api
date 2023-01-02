@@ -9,15 +9,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func RefreshStandings(standings []types.TeamStandingDB) {
+func RefreshStandings(standings []types.TeamStanding) {
 	coll := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.STANDINGS_COLLECTION_NAME)
-
 	cursor, err := coll.Find(context.TODO(), bson.D{{}})
 	if err != nil {
 		panic(err)
 	}
 
-	var results []types.TeamStandingDB
+	var results []types.TeamStanding
 	if err = cursor.All(context.TODO(), &results); err != nil {
 		panic(err)
 	}
@@ -31,11 +30,24 @@ func RefreshStandings(standings []types.TeamStandingDB) {
 		}
 	} else {
 		for _, standing := range standings {
-			update := bson.D{{Key: "$set", Value: bson.D{{Key: "record", Value: standing.Record}}}}
-			_, err := coll.UpdateByID(context.TODO(), standing.ID, update)
+			updateModel := types.TeamStandingUpdateDB{
+				Rank:         standing.Rank,
+				Record:       standing.Record,
+				Location:     standing.Location,
+				Name:         standing.Name,
+				Abbreviation: standing.Abbreviation,
+				DisplayName:  standing.DisplayName,
+				Conference:   standing.Conference,
+			}
+			updateByID := bson.D{{Key: "id", Value: standing.ID}}
+			update := bson.D{{Key: "$set", Value: updateModel}}
+
+			_, err := coll.UpdateOne(context.TODO(), updateByID, update)
 			if err != nil {
 				panic(err)
 			}
+
+			// log.Println(result)
 		}
 	}
 

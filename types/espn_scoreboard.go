@@ -1,6 +1,6 @@
 package types
 
-type Scoreboard struct {
+type EspnScoreboard struct {
 	Leagues []League `json:"leagues"`
 	Season  Season   `json:"season"`
 	Week    Week     `json:"week"`
