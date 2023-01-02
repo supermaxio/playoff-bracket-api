@@ -1,14 +1,14 @@
 package types
 
 type TeamStanding struct {
-	ID           string `json:"id"`
-	Rank         int    `json:"rank"`
-	Record       string `json:"record"`
-	Location     string `json:"location"`
-	Name         string `json:"name"`
-	Abbreviation string `json:"abbreviation"`
-	DisplayName  string `json:"display_name"`
-	Conference   string `json:"conference"`
+	ID           string `json:"id" bson:"id"`
+	Rank         int    `json:"rank" bson:"rank"`
+	Record       string `json:"record" bson:"record"`
+	Location     string `json:"location" bson:"location"`
+	Name         string `json:"name" bson:"name"`
+	Abbreviation string `json:"abbreviation" bson:"abbreviation"`
+	DisplayName  string `json:"display_name" bson:"display_name"`
+	Conference   string `json:"conference" bson:"conference"`
 }
 
 type ConferenceStandingResponse struct {

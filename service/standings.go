@@ -1,12 +1,44 @@
 package service
 
 import (
+	"sort"
+
 	"github.com/supermaxio/nflplayoffbracket/constants"
 	"github.com/supermaxio/nflplayoffbracket/database"
 	"github.com/supermaxio/nflplayoffbracket/requests"
 	"github.com/supermaxio/nflplayoffbracket/types"
 	"github.com/supermaxio/nflplayoffbracket/util"
 )
+
+func GetPlayoffStandings() (conferenceStandings []types.ConferenceStandingResponse, err error) {
+	afcConferenceStandingResponse := types.ConferenceStandingResponse{Conference: constants.AFC}
+	nfcConferenceStandingResponse := types.ConferenceStandingResponse{Conference: constants.NFC}
+
+	// Add only the top 7 teams from each conference to respective structs
+	teamsFromDb := database.GetStandings()
+	for _, team := range teamsFromDb {
+		if team.Rank < 8 {
+			switch util.TeamConference(team.Name) {
+			case constants.AFC:
+				afcConferenceStandingResponse.RankedTeams = append(afcConferenceStandingResponse.RankedTeams, team)
+			case constants.NFC:
+				nfcConferenceStandingResponse.RankedTeams = append(nfcConferenceStandingResponse.RankedTeams, team)
+			}
+		}
+	}
+
+	// Sort the array of 7 teams per conference
+	sort.Slice(afcConferenceStandingResponse.RankedTeams, func(i, j int) bool {
+		return afcConferenceStandingResponse.RankedTeams[i].Rank < afcConferenceStandingResponse.RankedTeams[j].Rank
+	})
+	sort.Slice(nfcConferenceStandingResponse.RankedTeams, func(i, j int) bool {
+		return nfcConferenceStandingResponse.RankedTeams[i].Rank < nfcConferenceStandingResponse.RankedTeams[j].Rank
+	})
+
+	conferenceStandings = append(conferenceStandings, afcConferenceStandingResponse, nfcConferenceStandingResponse)
+
+	return
+}
 
 func GetStandings() (conferenceStandings []types.ConferenceStandingResponse, err error) {
 	afcConferenceStandingResponse := types.ConferenceStandingResponse{Conference: constants.AFC}

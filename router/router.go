@@ -23,7 +23,8 @@ func Router() *mux.Router {
 
 	secure := router.PathPrefix("/v1/brackets").Subrouter()
 	secure.Use(auth.JwtVerify)
-	secure.HandleFunc("/standings", controller.GetStandings)
+	secure.HandleFunc("/playoff_standings", controller.GetPlayoffStandings)
+	secure.HandleFunc("/refresh_standings", controller.GetStandings)
 
 	return router
 }

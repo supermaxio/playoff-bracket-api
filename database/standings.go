@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func RefreshStandings(standings []types.TeamStanding) {
+func GetStandings() []types.TeamStanding {
 	coll := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.STANDINGS_COLLECTION_NAME)
 	cursor, err := coll.Find(context.TODO(), bson.D{{}})
 	if err != nil {
@@ -21,6 +21,12 @@ func RefreshStandings(standings []types.TeamStanding) {
 		panic(err)
 	}
 
+	return results
+}
+
+func RefreshStandings(standings []types.TeamStanding) {
+	coll := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.STANDINGS_COLLECTION_NAME)
+	results := GetStandings()
 	if len(results) == 0 {
 		for _, standing := range standings {
 			_, err := coll.InsertOne(context.TODO(), standing)
@@ -46,8 +52,6 @@ func RefreshStandings(standings []types.TeamStanding) {
 			if err != nil {
 				panic(err)
 			}
-
-			// log.Println(result)
 		}
 	}
 
