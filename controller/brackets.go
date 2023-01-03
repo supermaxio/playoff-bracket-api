@@ -14,7 +14,7 @@ import (
 
 func BracketsController(w http.ResponseWriter, r *http.Request) {
 	bracket := types.Bracket{}
-	username := auth.GetClaim().Username
+	username := auth.GetClaims().Username
 	switch r.Method {
 	case "GET":
 		bracketToReturn, err := service.GetBracket(username)

@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -38,7 +37,7 @@ type Token struct {
 	ExpirationTime time.Time `json:"expiration_time"`
 }
 
-var claims Claims
+var globalClaims Claims
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var user types.User
@@ -104,7 +103,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// here, we have kept it as 5 minutes
 	expirationTime := time.Now().Add(5 * time.Minute)
 	// Create the JWT claims, which includes the username and expiry time
-	claims = Claims{
+	claims := &Claims{
 		Username: creds.Username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			// In JWT, the expiry time is expressed as unix milliseconds
@@ -112,8 +111,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
+	globalClaims = *claims
 	// Declare the token with the algorithm used for signing, and the claims
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	// Create the JWT string
 	tokenString, err := token.SignedString([]byte(config.GetJwtKey()))
 	if err != nil {
@@ -153,9 +153,9 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		tknStr = c.Value
 	}
 
-	claims = Claims{}
+	claims := &Claims{}
 	jwtKey := []byte(config.GetJwtKey())
-	tkn, err := jwt.ParseWithClaims(tknStr, &claims, func(token *jwt.Token) (interface{}, error) {
+	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
 	if err != nil {
@@ -224,14 +224,14 @@ func JwtVerify(next http.Handler) http.Handler {
 		}
 
 		// Initialize a new instance of `Claims`
-		claims = Claims{}
+		claims := &Claims{}
 
 		jwtKey := []byte(config.GetJwtKey())
 		// Parse the JWT string and store the result in `claims`.
 		// Note that we are passing the key in this method as well. This method will return an error
 		// if the token is invalid (if it has expired according to the expiry time we set on sign in),
 		// or if the signature does not match
-		tkn, err := jwt.ParseWithClaims(tknStr, &claims, func(token *jwt.Token) (interface{}, error) {
+		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
 		})
 		if err != nil {
@@ -247,8 +247,8 @@ func JwtVerify(next http.Handler) http.Handler {
 			customerrors.HttpError(w, r, http.StatusUnauthorized, "Invalid token", err)
 			return
 		}
-		// Finally, return the welcome message to the user, along with their
-		// username given in the token
+
+		globalClaims = *claims
 
 		ctx := context.WithValue(r.Context(), "user", claims.Username)
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -262,7 +262,6 @@ func CorsHandler(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT")
 		w.Header().Set("Access-Control-Allow-Headers", "append,delete,entries,foreach,get,has,keys,set,values,Authorization,content-type")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		log.Printf(fmt.Sprintf("********* Headers: Location for cors: %s", strings.TrimRight(r.Referer(), "/")))
 		if r.Method == "OPTIONS" {
 			//handle preflight in here
 		} else {
@@ -271,6 +270,6 @@ func CorsHandler(next http.Handler) http.Handler {
 	})
 }
 
-func GetClaim() Claims {
-	return claims
+func GetClaims() Claims {
+	return globalClaims
 }
