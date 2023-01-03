@@ -24,7 +24,7 @@ func CreateUser(user types.User) types.User {
 
 	createdUser := FindUser(user.Username)
 
-	log.Println(fmt.Sprintf("Successfully added user: %s", createdUser.Username))
+	log.Printf(fmt.Sprintf("Successfully added user: %s", createdUser.Username))
 
 	return createdUser
 }

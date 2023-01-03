@@ -4,6 +4,7 @@ const (
 	MONGO_DB_NAME             = "nflPlayoffBrackets"
 	STANDINGS_COLLECTION_NAME = "standings"
 	USERS_COLLECTION_NAME     = "users"
+	BRACKETS_COLLECTION_NAME  = "brackets"
 
 	ENV                     = "ENV"
 	MONGO_DB_CONNECTION_ENV = "NFLPLAYOFFDBSECRET"
