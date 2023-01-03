@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,8 +13,8 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/supermaxio/nflplayoffbracket/config"
 	"github.com/supermaxio/nflplayoffbracket/constants"
-	"github.com/supermaxio/nflplayoffbracket/database"
 	"github.com/supermaxio/nflplayoffbracket/customerrors"
+	"github.com/supermaxio/nflplayoffbracket/database"
 	"github.com/supermaxio/nflplayoffbracket/types"
 	"github.com/supermaxio/nflplayoffbracket/util"
 	"golang.org/x/crypto/bcrypt"
@@ -261,7 +262,7 @@ func CorsHandler(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT")
 		w.Header().Set("Access-Control-Allow-Headers", "append,delete,entries,foreach,get,has,keys,set,values,Authorization,content-type")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-
+		log.Printf(fmt.Sprintf("********* Headers: Location for cors: %s", strings.TrimRight(r.Referer(), "/")))
 		if r.Method == "OPTIONS" {
 			//handle preflight in here
 		} else {
