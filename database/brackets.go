@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"log"
 	"strings"
 
 	"github.com/supermaxio/nflplayoffbracket/constants"
@@ -9,37 +10,42 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func FindBracket(username string) (resultBracket types.Bracket) {
+func FindBracket(username string) (resultBracket types.Bracket, err error) {
 	collection := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.BRACKETS_COLLECTION_NAME)
 
 	//validation
 	username = strings.ToLower(username)
 
 	query := bson.D{{Key: "username", Value: username}}
-	err := collection.FindOne(context.TODO(), query).Decode(&resultBracket)
+	err = collection.FindOne(context.TODO(), query).Decode(&resultBracket)
 	if err != nil {
+		log.Println(err.Error())
 		return
 	}
 
 	return
 }
 
-func CreateBracket(bracket types.Bracket) types.Bracket {
+func CreateBracket(bracket types.Bracket) (types.Bracket, error) {
 	collection := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.BRACKETS_COLLECTION_NAME)
 
 	bracket.Username = strings.ToLower(bracket.Username)
 
 	_, err := collection.InsertOne(context.TODO(), bracket)
 	if err != nil {
-		panic(err)
+		log.Println(err.Error())
+		return types.Bracket{}, err
 	}
 
-	createdBracket := FindBracket(bracket.Username)
+	createdBracket, err := FindBracket(bracket.Username)
+	if err != nil {
+		return types.Bracket{}, err
+	}
 
-	return createdBracket
+	return createdBracket, nil
 }
 
-func UpdateBracket(bracket types.Bracket) types.Bracket {
+func UpdateBracket(bracket types.Bracket) (types.Bracket, error) {
 	collection := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.BRACKETS_COLLECTION_NAME)
 
 	// validation
@@ -49,15 +55,19 @@ func UpdateBracket(bracket types.Bracket) types.Bracket {
 	update := bson.D{{Key: "$set", Value: bracket}}
 	_, err := collection.UpdateOne(context.TODO(), updateByUsername, update)
 	if err != nil {
-		panic(err)
+		log.Println(err.Error())
+		return types.Bracket{}, err
 	}
 
-	updatedBracket := FindBracket(bracket.Username)
+	updatedBracket, err := FindBracket(bracket.Username)
+	if err != nil {
+		return types.Bracket{}, err
+	}
 
-	return updatedBracket
+	return updatedBracket, nil
 }
 
-func DeleteBracket(username string) int {
+func DeleteBracket(username string) (int, error) {
 	collection := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.BRACKETS_COLLECTION_NAME)
 
 	// validation
@@ -66,8 +76,9 @@ func DeleteBracket(username string) int {
 	query := bson.D{{Key: "username", Value: username}}
 	deletedResult, err := collection.DeleteOne(context.TODO(), query)
 	if err != nil {
-		panic(err)
+		log.Println(err.Error())
+		return 0, err
 	}
 
-	return int(deletedResult.DeletedCount)
+	return int(deletedResult.DeletedCount), nil
 }
