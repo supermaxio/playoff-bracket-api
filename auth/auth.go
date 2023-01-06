@@ -50,27 +50,28 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	result := database.FindUser(user.Username)
 
-	if result.Username == "" {
-		hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 5)
-
-		if err != nil {
-			customerrors.HttpError(w, r, http.StatusBadRequest, "Error While Hashing Password, Try Again", err)
-			return
-		}
-		user.Password = string(hash)
-
-		_ = database.CreateUser(user)
-		if err != nil {
-			customerrors.HttpError(w, r, http.StatusBadRequest, "Error While Hashing Password, Try Again", err)
-			return
-		}
-
-		customerrors.HttpError(w, r, http.StatusOK, "Register Successful", err)
+	if result.Username != "" {
+		customerrors.HttpError(w, r, http.StatusBadRequest, "Username already exists!!", err)
 		return
 	}
 
-	customerrors.HttpError(w, r, http.StatusBadRequest, "Username already exists!!", err)
-	return
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 5)
+
+	if err != nil {
+		customerrors.HttpError(w, r, http.StatusBadRequest, "Error While Hashing Password, Try Again", err)
+		return
+	}
+	user.Password = string(hash)
+
+	_ = database.CreateUser(user)
+	if err != nil {
+		customerrors.HttpError(w, r, http.StatusBadRequest, "Error While Hashing Password, Try Again", err)
+		return
+	}
+
+	// Create empty bracket on register
+	database.CreateBracket(types.Bracket{})
+	customerrors.HttpError(w, r, http.StatusOK, "Register Successful", err)
 }
 
 // Create the Signin handler
@@ -101,7 +102,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Declare the expiration time of the token
 	// here, we have kept it as 5 minutes
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := time.Now().Add(24 * time.Hour)
 	// Create the JWT claims, which includes the username and expiry time
 	claims := &Claims{
 		Username: creds.Username,
