@@ -2,9 +2,11 @@ package service
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/supermaxio/nflplayoffbracket/database"
 	"github.com/supermaxio/nflplayoffbracket/types"
+	"github.com/supermaxio/nflplayoffbracket/util"
 )
 
 func GetBracket(username string) (bracketToReturn types.Bracket, err error) {
@@ -28,6 +30,18 @@ func CreateBracket(bracket types.Bracket) (bracketToReturn types.Bracket, err er
 }
 
 func UpdateBracket(bracket types.Bracket) (bracketToReturn types.Bracket, err error) {
+	playoffStandings, err := GetPlayoffStandings()
+	if err != nil {
+		err = errors.New("unable to Update bracket")
+		return
+	}
+
+	errList := util.ValidateBracket(bracket, playoffStandings)
+	if len(errList) > 0 {
+		err = errors.New(strings.Join(errList, ", "))
+		return
+	}
+
 	bracketToReturn, err = database.UpdateBracket(bracket)
 	if err != nil {
 		err = errors.New("unable to Update bracket")

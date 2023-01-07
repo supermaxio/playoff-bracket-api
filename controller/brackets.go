@@ -42,7 +42,7 @@ func BracketsController(w http.ResponseWriter, r *http.Request) {
 		bracket.Username = username
 		bracketToReturn, err := service.UpdateBracket(bracket)
 		if err != nil {
-			customerrors.HttpError(w, r, http.StatusBadRequest, "Unable to update bracket", err)
+			customerrors.HttpError(w, r, http.StatusBadRequest, err.Error(), err)
 			return
 		}
 
