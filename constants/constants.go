@@ -1,7 +1,8 @@
 package constants
 
 const (
-	MONGO_DB_NAME             = "nflPlayoffBrackets"
+	MONGO_DB_NAME_DEV         = "playoffBracketsDev"
+	MONGO_DB_NAME_PROD        = "playoffBracketsProd"
 	STANDINGS_COLLECTION_NAME = "standings"
 	USERS_COLLECTION_NAME     = "users"
 	BRACKETS_COLLECTION_NAME  = "brackets"

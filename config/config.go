@@ -7,6 +7,7 @@ import (
 )
 
 var mongoDbConnection string
+var mongoDbName string
 var jwtKey string
 var port string
 var env string
@@ -15,6 +16,7 @@ var domain string
 func Setup() {
 	env = setEnv()
 	mongoDbConnection = setMongoDbConnection()
+	mongoDbName = setMongoDbName()
 	jwtKey = setJwtKey()
 	port = setPort()
 	domain = setDomain()
@@ -37,6 +39,16 @@ func setMongoDbConnection() string {
 	return os.Getenv(constants.MONGO_DB_CONNECTION_ENV)
 }
 
+func setMongoDbName() string {
+	switch env {
+	case constants.ENV_STAGE,
+		constants.ENV_PROD:
+		return constants.MONGO_DB_NAME_PROD
+	default:
+		return constants.MONGO_DB_NAME_DEV
+	}
+}
+
 func setDomain() string {
 	switch env {
 	case constants.ENV_TEST,
@@ -54,6 +66,10 @@ func GetDomain() string {
 
 func GetMongoDbConnection() string {
 	return mongoDbConnection
+}
+
+func GetMongoDbName() string {
+	return mongoDbName
 }
 
 func setJwtKey() string {
