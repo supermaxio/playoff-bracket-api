@@ -6,13 +6,14 @@ import (
 	"log"
 	"strings"
 
+	"github.com/supermaxio/nflplayoffbracket/config"
 	"github.com/supermaxio/nflplayoffbracket/constants"
 	"github.com/supermaxio/nflplayoffbracket/types"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func CreateUser(user types.User) types.User {
-	coll := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.USERS_COLLECTION_NAME)
+	coll := mongoClient.Database(config.GetMongoDbName()).Collection(constants.USERS_COLLECTION_NAME)
 
 	// validation
 	user.Username = strings.ToLower(user.Username)
@@ -30,7 +31,7 @@ func CreateUser(user types.User) types.User {
 }
 
 func FindUser(username string) (resultUser types.User) {
-	coll := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.USERS_COLLECTION_NAME)
+	coll := mongoClient.Database(config.GetMongoDbName()).Collection(constants.USERS_COLLECTION_NAME)
 
 	//validation
 	username = strings.ToLower(username)

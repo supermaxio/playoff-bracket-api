@@ -70,7 +70,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create empty bracket on register
-	database.CreateBracket(types.Bracket{})
+	database.CreateBracket(types.Bracket{Username: user.Username})
 	customerrors.HttpError(w, r, http.StatusOK, "Register Successful", err)
 }
 

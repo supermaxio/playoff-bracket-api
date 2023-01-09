@@ -4,13 +4,14 @@ import (
 	"context"
 	"log"
 
+	"github.com/supermaxio/nflplayoffbracket/config"
 	"github.com/supermaxio/nflplayoffbracket/constants"
 	"github.com/supermaxio/nflplayoffbracket/types"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func GetStandings() []types.TeamStanding {
-	coll := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.STANDINGS_COLLECTION_NAME)
+	coll := mongoClient.Database(config.GetMongoDbName()).Collection(constants.STANDINGS_COLLECTION_NAME)
 	cursor, err := coll.Find(context.TODO(), bson.D{{}})
 	if err != nil {
 		panic(err)
@@ -25,7 +26,7 @@ func GetStandings() []types.TeamStanding {
 }
 
 func RefreshStandings(standings []types.TeamStanding) {
-	coll := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.STANDINGS_COLLECTION_NAME)
+	coll := mongoClient.Database(config.GetMongoDbName()).Collection(constants.STANDINGS_COLLECTION_NAME)
 	results := GetStandings()
 	if len(results) == 0 {
 		for _, standing := range standings {

@@ -5,13 +5,14 @@ import (
 	"log"
 	"strings"
 
+	"github.com/supermaxio/nflplayoffbracket/config"
 	"github.com/supermaxio/nflplayoffbracket/constants"
 	"github.com/supermaxio/nflplayoffbracket/types"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func FindBracket(username string) (resultBracket types.Bracket, err error) {
-	collection := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.BRACKETS_COLLECTION_NAME)
+	collection := mongoClient.Database(config.GetMongoDbName()).Collection(constants.BRACKETS_COLLECTION_NAME)
 
 	//validation
 	username = strings.ToLower(username)
@@ -27,7 +28,7 @@ func FindBracket(username string) (resultBracket types.Bracket, err error) {
 }
 
 func CreateBracket(bracket types.Bracket) (types.Bracket, error) {
-	collection := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.BRACKETS_COLLECTION_NAME)
+	collection := mongoClient.Database(config.GetMongoDbName()).Collection(constants.BRACKETS_COLLECTION_NAME)
 
 	bracket.Username = strings.ToLower(bracket.Username)
 
@@ -46,7 +47,7 @@ func CreateBracket(bracket types.Bracket) (types.Bracket, error) {
 }
 
 func UpdateBracket(bracket types.Bracket) (types.Bracket, error) {
-	collection := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.BRACKETS_COLLECTION_NAME)
+	collection := mongoClient.Database(config.GetMongoDbName()).Collection(constants.BRACKETS_COLLECTION_NAME)
 
 	// validation
 	bracket.Username = strings.ToLower(bracket.Username)
@@ -68,7 +69,7 @@ func UpdateBracket(bracket types.Bracket) (types.Bracket, error) {
 }
 
 func DeleteBracket(username string) (int, error) {
-	collection := mongoClient.Database(constants.MONGO_DB_NAME).Collection(constants.BRACKETS_COLLECTION_NAME)
+	collection := mongoClient.Database(config.GetMongoDbName()).Collection(constants.BRACKETS_COLLECTION_NAME)
 
 	// validation
 	username = strings.ToLower(username)

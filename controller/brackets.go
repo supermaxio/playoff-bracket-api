@@ -19,7 +19,7 @@ func BracketsController(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		bracketToReturn, err := service.GetBracket(username)
 		if err != nil {
-			customerrors.HttpError(w, r, http.StatusBadRequest, "Unable to find bracket", err)
+			customerrors.HttpError(w, r, http.StatusBadRequest, fmt.Sprintf("Unable to find bracket for %s", username), err)
 			return
 		}
 
@@ -31,7 +31,7 @@ func BracketsController(w http.ResponseWriter, r *http.Request) {
 		log.Println(bracket)
 		bracketToReturn, err := service.CreateBracket(bracket)
 		if err != nil {
-			customerrors.HttpError(w, r, http.StatusBadRequest, "Unable to create bracket", err)
+			customerrors.HttpError(w, r, http.StatusBadRequest, fmt.Sprintf("Unable to create bracket for %s", username), err)
 			return
 		}
 
@@ -50,7 +50,7 @@ func BracketsController(w http.ResponseWriter, r *http.Request) {
 	case "DELETE":
 		err := service.DeleteBracket(username)
 		if err != nil {
-			customerrors.HttpError(w, r, http.StatusBadRequest, "Unable to delete bracket", err)
+			customerrors.HttpError(w, r, http.StatusBadRequest, fmt.Sprintf("Unable to delete bracket for %s", username), err)
 			return
 		}
 
