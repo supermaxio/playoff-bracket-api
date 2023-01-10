@@ -34,6 +34,7 @@ type Claims struct {
 
 type Token struct {
 	Token          string    `json:"token"`
+	Username       string    `json:"username"`
 	ExpirationTime time.Time `json:"expiration_time"`
 }
 
@@ -125,12 +126,15 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Finally, we set the client cookie for constants.COOKIE_TOKEN as the JWT we just generated
 	// we also set an expiry time which is the same as the token itself
 	http.SetCookie(w, &http.Cookie{
-		Name:    constants.COOKIE_TOKEN,
-		Value:   tokenString,
-		Expires: expirationTime,
+		Name:     constants.COOKIE_TOKEN,
+		Value:    tokenString,
+		Expires:  expirationTime,
+		SameSite: http.SameSiteNoneMode,
+		HttpOnly: true,
+		Secure:   true,
 	})
 
-	json.NewEncoder(w).Encode(Token{tokenString, expirationTime})
+	json.NewEncoder(w).Encode(Token{tokenString, creds.Username, expirationTime})
 }
 
 func RefreshHandler(w http.ResponseWriter, r *http.Request) {
@@ -184,12 +188,15 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Set the new token as the users `token` cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:    constants.COOKIE_TOKEN,
-		Value:   tokenString,
-		Expires: expirationTime,
+		Name:     constants.COOKIE_TOKEN,
+		Value:    tokenString,
+		Expires:  expirationTime,
+		SameSite: http.SameSiteNoneMode,
+		HttpOnly: true,
+		Secure:   true,
 	})
 
-	json.NewEncoder(w).Encode(Token{tokenString, expirationTime})
+	json.NewEncoder(w).Encode(Token{tokenString, claims.Username, expirationTime})
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
