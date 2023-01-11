@@ -21,12 +21,16 @@ func Router() *mux.Router {
 	router.HandleFunc("/v1/refresh", auth.RefreshHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/v1/logout", auth.Logout).Methods("GET", "OPTIONS")
 
-	secure := router.PathPrefix("/v1/brackets").Subrouter()
-	secure.Use(auth.JwtVerify)
-	secure.HandleFunc("/", controller.BracketsController).Methods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-	secure.HandleFunc("/playoff_standings", controller.GetPlayoffStandings).Methods("GET", "OPTIONS")
-	secure.HandleFunc("/refresh_standings", controller.GetStandings).Methods("GET", "OPTIONS")
+	bracketsRouter := router.PathPrefix("/v1/brackets").Subrouter()
+	bracketsRouter.Use(auth.JwtVerify)
+	bracketsRouter.HandleFunc("/", controller.BracketsController).Methods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+	bracketsRouter.HandleFunc("/playoff_standings", controller.GetPlayoffStandings).Methods("GET", "OPTIONS")
+	bracketsRouter.HandleFunc("/refresh_standings", controller.GetStandings).Methods("GET", "OPTIONS")
 
+	usersRouter := router.PathPrefix("/v1/users").Subrouter()
+	usersRouter.Use(auth.JwtVerify)
+	usersRouter.HandleFunc("/", controller.UsersController).Methods("GET", "OPTIONS")
+	usersRouter.HandleFunc("/{USERNAME}", controller.UsersController).Methods("GET", "PUT", "OPTIONS")
 	return router
 }
 
