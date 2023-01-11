@@ -49,7 +49,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result := database.FindUser(user.Username)
+	result, _ := database.FindUser(user.Username)
 
 	if result.Username != "" {
 		customerrors.HttpError(w, r, http.StatusBadRequest, "Username already exists!!", err)
@@ -64,14 +64,14 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Password = string(hash)
 
-	_ = database.CreateUser(user)
+	createdUser, err := database.CreateUser(user)
 	if err != nil {
 		customerrors.HttpError(w, r, http.StatusBadRequest, "Error While Hashing Password, Try Again", err)
 		return
 	}
 
 	// Create empty bracket on register
-	database.CreateBracket(types.Bracket{Username: user.Username})
+	database.CreateBracket(types.Bracket{Username: createdUser.Username})
 	customerrors.HttpError(w, r, http.StatusOK, "Register Successful", err)
 }
 
@@ -87,7 +87,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the expected password from our in memory map
-	resultUser := database.FindUser(creds.Username)
+	resultUser, _ := database.FindUser(creds.Username)
 	// if err != nil {
 	if resultUser.Username == "" {
 		customerrors.HttpError(w, r, http.StatusBadRequest, "Invalid username", err)
