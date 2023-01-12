@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -247,7 +246,6 @@ func JwtVerify(next http.Handler) http.Handler {
 				customerrors.HttpError(w, r, http.StatusUnauthorized, "Username or password are incorrect", err)
 				return
 			}
-			log.Println(err)
 			customerrors.HttpError(w, r, http.StatusBadRequest, "Invalid credentials", err)
 			return
 		}

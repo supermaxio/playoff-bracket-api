@@ -15,7 +15,11 @@ func GetPlayoffStandings() (conferenceStandings []types.ConferenceStandingRespon
 	nfcConferenceStandingResponse := types.ConferenceStandingResponse{Conference: constants.NFC}
 
 	// Add only the top 7 teams from each conference to respective structs
-	teamsFromDb := database.GetStandings()
+	teamsFromDb, err := database.GetStandings()
+	if err != nil {
+		return
+	}
+
 	for _, team := range teamsFromDb {
 		if team.Rank < 8 {
 			switch util.TeamConference(team.Name) {

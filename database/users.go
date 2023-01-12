@@ -17,13 +17,11 @@ func GetUsers() ([]types.User, error) {
 
 	cursor, err := coll.Find(context.TODO(), bson.D{{}})
 	if err != nil {
-		log.Println(err.Error())
 		return []types.User{}, err
 	}
 
 	var results []types.User
 	if err = cursor.All(context.TODO(), &results); err != nil {
-		log.Println(err.Error())
 		return []types.User{}, err
 	}
 
@@ -38,7 +36,6 @@ func CreateUser(user types.User) (types.User, error) {
 
 	_, err := coll.InsertOne(context.TODO(), user)
 	if err != nil {
-		log.Println(err.Error())
 		return types.User{}, err
 	}
 
@@ -58,7 +55,6 @@ func UpdateUser(username string, user types.UserUpdate) (types.User, error) {
 	update := bson.D{{Key: "$set", Value: user}}
 	_, err := collection.UpdateOne(context.TODO(), updateByUsername, update)
 	if err != nil {
-		log.Println(err.Error())
 		return types.User{}, err
 	}
 
@@ -78,14 +74,13 @@ func FindUser(username string) (resultUser types.User, err error) {
 
 	err = coll.FindOne(context.TODO(), bson.D{{Key: "username", Value: username}}).Decode(&resultUser)
 	if err != nil {
-		log.Println(err.Error())
 		return
 	}
 
 	return
 }
 
-func DeleteUser(username string)  (int, error) {
+func DeleteUser(username string) (int, error) {
 	collection := mongoClient.Database(config.GetMongoDbName()).Collection(constants.USERS_COLLECTION_NAME)
 
 	// validation
@@ -94,7 +89,6 @@ func DeleteUser(username string)  (int, error) {
 	query := bson.D{{Key: "username", Value: username}}
 	deletedResult, err := collection.DeleteOne(context.TODO(), query)
 	if err != nil {
-		log.Println(err.Error())
 		return 0, err
 	}
 

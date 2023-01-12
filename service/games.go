@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-	"log"
 	"math"
 	"reflect"
 	"sort"
@@ -289,7 +287,7 @@ func rank(scores []int, isReversed bool) []int {
 	if !isReversed {
 		reverse(scoresCopy)
 	}
-	log.Println(scoresCopy)
+
 	for i := range scoresCopy {
 		if i != 0 && scoresCopy[i] == scoresCopy[i-1] {
 			scoreMap[scoresCopy[i]] = scoreMap[scoresCopy[i-1]]
@@ -312,14 +310,8 @@ func reverse(a []int) {
 
 // rank users by score
 func setRanksForUsers(scoresList []int, usersToSave []types.User) {
-
-	log.Printf(fmt.Sprintf(" ************ "))
-	log.Printf(fmt.Sprintf(" scoreslist %d", scoresList))
-	log.Printf(fmt.Sprintf(" users %d", len(usersToSave)))
-
 	// rank users by score
 	rankOrder := rank(scoresList, false)
-	log.Printf(fmt.Sprintf(" rank order %d", rankOrder))
 
 	for i := range usersToSave {
 		usersToSave[i].Rank = rankOrder[i]

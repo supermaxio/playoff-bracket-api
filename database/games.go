@@ -16,13 +16,11 @@ func GetGames() ([]types.Game, error) {
 
 	cursor, err := coll.Find(context.TODO(), bson.D{{}})
 	if err != nil {
-		log.Println(err.Error())
 		return []types.Game{}, err
 	}
 
 	var results []types.Game
 	if err = cursor.All(context.TODO(), &results); err != nil {
-		log.Println(err.Error())
 		return []types.Game{}, err
 	}
 
@@ -36,7 +34,6 @@ func CreateGame(game types.Game) (types.Game, error) {
 
 	_, err := coll.InsertOne(context.TODO(), game)
 	if err != nil {
-		log.Println(err.Error())
 		return types.Game{}, err
 	}
 
@@ -56,7 +53,6 @@ func UpdateGame(gameID int, game types.Game) (types.Game, error) {
 	update := bson.D{{Key: "$set", Value: game}}
 	_, err := collection.UpdateOne(context.TODO(), updateByGamename, update)
 	if err != nil {
-		log.Println(err.Error())
 		return types.Game{}, err
 	}
 
@@ -75,7 +71,6 @@ func FindGame(gameID int) (resultGame types.Game, err error) {
 
 	err = coll.FindOne(context.TODO(), bson.D{{Key: "id", Value: gameID}}).Decode(&resultGame)
 	if err != nil {
-		log.Println(err.Error())
 		return
 	}
 
@@ -90,7 +85,6 @@ func DeleteGame(gameID int) (int, error) {
 	query := bson.D{{Key: "id", Value: gameID}}
 	deletedResult, err := collection.DeleteOne(context.TODO(), query)
 	if err != nil {
-		log.Println(err.Error())
 		return 0, err
 	}
 

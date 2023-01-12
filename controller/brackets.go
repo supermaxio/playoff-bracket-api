@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -44,7 +43,6 @@ func BracketsController(w http.ResponseWriter, r *http.Request) {
 			json.NewDecoder(r.Body).Decode(&bracket)
 
 			bracket.Username = username
-			log.Println(bracket)
 			bracketToReturn, err := service.CreateBracket(bracket)
 			if err != nil {
 				customerrors.HttpError(w, r, http.StatusBadRequest, fmt.Sprintf("Unable to create bracket for %s", username), err)

@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/supermaxio/nflplayoffbracket/config"
@@ -16,13 +15,11 @@ func GetBrackets() ([]types.Bracket, error) {
 
 	cursor, err := coll.Find(context.TODO(), bson.D{{}})
 	if err != nil {
-		log.Println(err.Error())
 		return []types.Bracket{}, err
 	}
 
 	var results []types.Bracket
 	if err = cursor.All(context.TODO(), &results); err != nil {
-		log.Println(err.Error())
 		return []types.Bracket{}, err
 	}
 
@@ -38,7 +35,6 @@ func FindBracket(username string) (resultBracket types.Bracket, err error) {
 	query := bson.D{{Key: "username", Value: username}}
 	err = collection.FindOne(context.TODO(), query).Decode(&resultBracket)
 	if err != nil {
-		log.Println(err.Error())
 		return
 	}
 
@@ -52,7 +48,6 @@ func CreateBracket(bracket types.Bracket) (types.Bracket, error) {
 
 	_, err := collection.InsertOne(context.TODO(), bracket)
 	if err != nil {
-		log.Println(err.Error())
 		return types.Bracket{}, err
 	}
 
@@ -74,7 +69,6 @@ func UpdateBracket(bracket types.Bracket) (types.Bracket, error) {
 	update := bson.D{{Key: "$set", Value: bracket}}
 	_, err := collection.UpdateOne(context.TODO(), updateByUsername, update)
 	if err != nil {
-		log.Println(err.Error())
 		return types.Bracket{}, err
 	}
 
@@ -95,7 +89,6 @@ func DeleteBracket(username string) (int, error) {
 	query := bson.D{{Key: "username", Value: username}}
 	deletedResult, err := collection.DeleteOne(context.TODO(), query)
 	if err != nil {
-		log.Println(err.Error())
 		return 0, err
 	}
 

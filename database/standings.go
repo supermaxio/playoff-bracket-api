@@ -10,29 +10,33 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func GetStandings() []types.TeamStanding {
+func GetStandings() ([]types.TeamStanding, error) {
 	coll := mongoClient.Database(config.GetMongoDbName()).Collection(constants.STANDINGS_COLLECTION_NAME)
 	cursor, err := coll.Find(context.TODO(), bson.D{{}})
 	if err != nil {
-		panic(err)
+		return []types.TeamStanding{}, err
 	}
 
 	var results []types.TeamStanding
 	if err = cursor.All(context.TODO(), &results); err != nil {
-		panic(err)
+		return []types.TeamStanding{}, err
 	}
 
-	return results
+	return results, nil
 }
 
-func RefreshStandings(standings []types.TeamStanding) {
+func RefreshStandings(standings []types.TeamStanding) error {
 	coll := mongoClient.Database(config.GetMongoDbName()).Collection(constants.STANDINGS_COLLECTION_NAME)
-	results := GetStandings()
+	results, err := GetStandings()
+	if err != nil {
+		return err
+	}
+
 	if len(results) == 0 {
 		for _, standing := range standings {
 			_, err := coll.InsertOne(context.TODO(), standing)
 			if err != nil {
-				panic(err)
+				return err
 			}
 		}
 	} else {
@@ -51,10 +55,12 @@ func RefreshStandings(standings []types.TeamStanding) {
 
 			_, err := coll.UpdateOne(context.TODO(), updateByID, update)
 			if err != nil {
-				panic(err)
+				return err
 			}
 		}
 	}
 
 	log.Println("Successfully updated standings")
+
+	return nil
 }

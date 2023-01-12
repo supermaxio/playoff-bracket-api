@@ -16,7 +16,7 @@ func MongoConnect() {
 	// Create a new client and connect to the server
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(config.GetMongoDbConnection()))
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 
 	mongoClient = client
@@ -30,6 +30,7 @@ func MongoPing() {
 	if err := mongoClient.Ping(context.TODO(), readpref.Primary()); err != nil {
 		MongoDisconnect()
 		panic(err)
+		// TODO Remove at some point
 	}
 	log.Println("Successfully pinged mongo db.")
 }
@@ -37,6 +38,7 @@ func MongoPing() {
 func MongoDisconnect() {
 	if err := mongoClient.Disconnect(context.TODO()); err != nil {
 		panic(err)
+		// TODO Remove at some point
 	}
 	log.Println("Successfully Disconnected from mongo db.")
 }
