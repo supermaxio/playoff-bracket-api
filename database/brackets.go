@@ -11,6 +11,24 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+func GetBrackets() ([]types.Bracket, error) {
+	coll := mongoClient.Database(config.GetMongoDbName()).Collection(constants.BRACKETS_COLLECTION_NAME)
+
+	cursor, err := coll.Find(context.TODO(), bson.D{{}})
+	if err != nil {
+		log.Println(err.Error())
+		return []types.Bracket{}, err
+	}
+
+	var results []types.Bracket
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		log.Println(err.Error())
+		return []types.Bracket{}, err
+	}
+
+	return results, nil
+}
+
 func FindBracket(username string) (resultBracket types.Bracket, err error) {
 	collection := mongoClient.Database(config.GetMongoDbName()).Collection(constants.BRACKETS_COLLECTION_NAME)
 

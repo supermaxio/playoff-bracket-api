@@ -21,11 +21,20 @@ func Router() *mux.Router {
 	router.HandleFunc("/v1/refresh", auth.RefreshHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/v1/logout", auth.Logout).Methods("GET", "OPTIONS")
 
+	standingsRouter := router.PathPrefix("/v1/standings").Subrouter()
+	standingsRouter.Use(auth.JwtVerify)
+	standingsRouter.HandleFunc("/playoffs", controller.GetPlayoffStandings).Methods("GET", "OPTIONS")
+	standingsRouter.HandleFunc("/refresh", controller.GetStandings).Methods("GET", "OPTIONS")
+
+	gamesRouter := router.PathPrefix("/v1/games").Subrouter()
+	gamesRouter.Use(auth.JwtVerify)
+	gamesRouter.HandleFunc("/", controller.GetGames).Methods("GET", "OPTIONS")
+	gamesRouter.HandleFunc("/refresh", controller.RefreshScores).Methods("GET", "OPTIONS")
+
 	bracketsRouter := router.PathPrefix("/v1/brackets").Subrouter()
 	bracketsRouter.Use(auth.JwtVerify)
 	bracketsRouter.HandleFunc("/", controller.BracketsController).Methods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-	bracketsRouter.HandleFunc("/playoff_standings", controller.GetPlayoffStandings).Methods("GET", "OPTIONS")
-	bracketsRouter.HandleFunc("/refresh_standings", controller.GetStandings).Methods("GET", "OPTIONS")
+	bracketsRouter.HandleFunc("/{USERNAME}", controller.BracketsController).Methods("GET", "OPTIONS")
 
 	usersRouter := router.PathPrefix("/v1/users").Subrouter()
 	usersRouter.Use(auth.JwtVerify)
