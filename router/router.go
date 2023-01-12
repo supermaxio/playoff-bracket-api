@@ -20,6 +20,7 @@ func Router() *mux.Router {
 	router.HandleFunc("/v1/login", auth.LoginHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/v1/refresh", auth.RefreshHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/v1/logout", auth.Logout).Methods("GET", "OPTIONS")
+	router.HandleFunc("/v1/scores/refresh", controller.RefreshScores).Methods("GET", "OPTIONS")
 
 	standingsRouter := router.PathPrefix("/v1/standings").Subrouter()
 	standingsRouter.Use(auth.JwtVerify)
@@ -29,7 +30,6 @@ func Router() *mux.Router {
 	gamesRouter := router.PathPrefix("/v1/games").Subrouter()
 	gamesRouter.Use(auth.JwtVerify)
 	gamesRouter.HandleFunc("/", controller.GetGames).Methods("GET", "OPTIONS")
-	gamesRouter.HandleFunc("/refresh", controller.RefreshScores).Methods("GET", "OPTIONS")
 
 	bracketsRouter := router.PathPrefix("/v1/brackets").Subrouter()
 	bracketsRouter.Use(auth.JwtVerify)
