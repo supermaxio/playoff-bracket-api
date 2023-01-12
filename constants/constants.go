@@ -5,6 +5,7 @@ const (
 	MONGO_DB_NAME_PROD        = "playoffBracketsProd"
 	STANDINGS_COLLECTION_NAME = "standings"
 	USERS_COLLECTION_NAME     = "users"
+	GAMES_COLLECTION_NAME     = "games"
 	BRACKETS_COLLECTION_NAME  = "brackets"
 
 	ENV                     = "ENV"
