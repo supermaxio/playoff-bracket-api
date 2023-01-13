@@ -10,12 +10,19 @@ import (
 	"github.com/supermaxio/nflplayoffbracket/constants"
 	"github.com/supermaxio/nflplayoffbracket/types"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func GetUsers() ([]types.User, error) {
-	coll := mongoClient.Database(config.GetMongoDbName()).Collection(constants.USERS_COLLECTION_NAME)
+	collection := mongoClient.Database(config.GetMongoDbName()).Collection(constants.USERS_COLLECTION_NAME)
+	// create a bson.D to specify the sort
+	sort := bson.D{{Key: "rank", Value: 1}} // 1 for ascending, -1 for descending
 
-	cursor, err := coll.Find(context.TODO(), bson.D{{}})
+	// create the find options
+	findOptions := options.Find().SetSort(sort)
+
+	// perform the find
+	cursor, err := collection.Find(context.TODO(), bson.D{}, findOptions)
 	if err != nil {
 		return []types.User{}, err
 	}
@@ -29,12 +36,12 @@ func GetUsers() ([]types.User, error) {
 }
 
 func CreateUser(user types.User) (types.User, error) {
-	coll := mongoClient.Database(config.GetMongoDbName()).Collection(constants.USERS_COLLECTION_NAME)
+	collection := mongoClient.Database(config.GetMongoDbName()).Collection(constants.USERS_COLLECTION_NAME)
 
 	// validation
 	user.Username = strings.ToLower(user.Username)
 
-	_, err := coll.InsertOne(context.TODO(), user)
+	_, err := collection.InsertOne(context.TODO(), user)
 	if err != nil {
 		return types.User{}, err
 	}
@@ -67,12 +74,12 @@ func UpdateUser(username string, user types.UserUpdate) (types.User, error) {
 }
 
 func FindUser(username string) (resultUser types.User, err error) {
-	coll := mongoClient.Database(config.GetMongoDbName()).Collection(constants.USERS_COLLECTION_NAME)
+	collection := mongoClient.Database(config.GetMongoDbName()).Collection(constants.USERS_COLLECTION_NAME)
 
 	//validation
 	username = strings.ToLower(username)
 
-	err = coll.FindOne(context.TODO(), bson.D{{Key: "username", Value: username}}).Decode(&resultUser)
+	err = collection.FindOne(context.TODO(), bson.D{{Key: "username", Value: username}}).Decode(&resultUser)
 	if err != nil {
 		return
 	}

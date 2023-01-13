@@ -3,12 +3,12 @@ package service
 import (
 	"math"
 	"reflect"
-	"sort"
 	"strconv"
 
 	"github.com/supermaxio/nflplayoffbracket/database"
 	"github.com/supermaxio/nflplayoffbracket/requests"
 	"github.com/supermaxio/nflplayoffbracket/types"
+	"github.com/supermaxio/nflplayoffbracket/util"
 )
 
 func GetGames() ([]types.Game, error) {
@@ -76,20 +76,91 @@ func RefreshScores() ([]types.Game, error) {
 		}
 	}
 
+	// games := []types.Game{
+    //     {
+    //         ID: 401438000,
+    //         BracketName: "nfc_wild_card_1",
+    //         WeekNumber: 1,
+    //         AwayTeamScore: 0,
+    //         HomeTeamScore: 0,
+    //         AwayTeam: "Seahawks",
+    //         HomeTeam: "49ers",
+    //         Winner: "",
+    //         Finished: false,
+    //     },
+    //     {
+    //         ID: 401437998,
+    //         BracketName: "afc_wild_card_3",
+    //         WeekNumber: 1,
+    //         AwayTeamScore: 0,
+    //         HomeTeamScore: 0,
+    //         AwayTeam: "Chargers",
+    //         HomeTeam: "Jaguars",
+    //         Winner: "",
+    //         Finished: false,
+    //     },
+    //     {
+    //         ID: 401438002,
+    //         BracketName: "afc_wild_card_1",
+    //         WeekNumber: 1,
+    //         AwayTeamScore: 0,
+    //         HomeTeamScore: 0,
+    //         AwayTeam: "Dolphins",
+    //         HomeTeam: "Bills",
+    //         Winner: "",
+    //         Finished: false,
+    //     },
+    //     {
+    //         ID: 401438001,
+    //         BracketName: "nfc_wild_card_2",
+    //         WeekNumber: 1,
+    //         AwayTeamScore: 0,
+    //         HomeTeamScore: 0,
+    //         AwayTeam: "Giants",
+    //         HomeTeam: "Vikings",
+    //         Winner: "",
+    //         Finished: false,
+    //     },
+    //     {
+    //         ID: 401437999,
+    //         BracketName: "afc_wild_card_2",
+    //         WeekNumber: 1,
+    //         AwayTeamScore: 0,
+    //         HomeTeamScore: 0,
+    //         AwayTeam: "Ravens",
+    //         HomeTeam: "Bengals",
+    //         Winner: "",
+    //         Finished: false,
+    //     },
+    //     {
+    //         ID: 401438003,
+    //         BracketName: "nfw_wild_card_3",
+	// 		WeekNumber: 1,
+    //         AwayTeamScore: 0,
+    //         HomeTeamScore: 0,
+    //         AwayTeam: "Ravens",
+    //         HomeTeam: "Bengals",
+    //         Winner: "",
+    //         Finished: false,
+	// 	},
+	// }
+
 	var usersToSave []types.User
 	var scoresList []int
 
 	// Calculate bracket scores from games
 	for _, bracket := range bracketsInDB {
-		for _, user := range usersInDB {
-			if bracket.Username == user.Username {
-				newScore, newTieBreaker := getScoreFromBracket(bracket, gamesToSave)
-				scoresList = append(scoresList, newScore)
-				usersToSave = append(usersToSave, types.User{
-					Username:   user.Username,
-					Score:      newScore,
-					TieBreaker: newTieBreaker,
-				})
+		if bracket.SuperBowlChampion != "" {
+			for _, user := range usersInDB {
+				if bracket.Username == user.Username {
+					newScore, newTieBreaker := getScoreFromBracket(bracket, gamesToSave)
+					scoresList = append(scoresList, newScore)
+					usersToSave = append(usersToSave, types.User{
+						Username:   user.Username,
+						Score:      newScore,
+						TieBreaker: newTieBreaker,
+					})
+				}
 			}
 		}
 	}
@@ -220,8 +291,6 @@ func getBracketGameName(homeTeam string, weekNumber int, teamsInRank []types.Con
 }
 
 func getScoreFromBracket(bracket types.Bracket, games []types.Game) (newScore int, newTieBreaker int) {
-	newTieBreaker = bracket.FinalScoreSum
-
 	for _, game := range games {
 		switch game.WeekNumber {
 		case 1:
@@ -276,42 +345,10 @@ func getScoreFromBracket(bracket types.Bracket, games []types.Game) (newScore in
 	return
 }
 
-func rank(scores []int, isReversed bool) []int {
-	// Create a copy of the scores slice, so we don't modify the original
-	scoresCopy := make([]int, len(scores))
-	copy(scoresCopy, scores)
-
-	// Create a mapping of scores to ranks
-	scoreMap := make(map[int]int, len(scores))
-	sort.Ints(scoresCopy)
-	if !isReversed {
-		reverse(scoresCopy)
-	}
-
-	for i := range scoresCopy {
-		if i != 0 && scoresCopy[i] == scoresCopy[i-1] {
-			scoreMap[scoresCopy[i]] = scoreMap[scoresCopy[i-1]]
-		} else {
-			scoreMap[scoresCopy[i]] = i + 1
-		}
-	}
-
-	// Use the mapping to assign ranks to the original scores
-	ranks := make([]int, len(scores))
-	for i := range scores {
-		ranks[i] = scoreMap[scores[i]]
-	}
-	return ranks
-}
-
-func reverse(a []int) {
-	sort.Sort(sort.Reverse(sort.IntSlice(a)))
-}
-
 // rank users by score
 func setRanksForUsers(scoresList []int, usersToSave []types.User) {
 	// rank users by score
-	rankOrder := rank(scoresList, false)
+	rankOrder := util.Rank(scoresList, false)
 
 	for i := range usersToSave {
 		usersToSave[i].Rank = rankOrder[i]
@@ -335,7 +372,7 @@ func setRanksForUsers(scoresList []int, usersToSave []types.User) {
 			tieBreakerList = append(tieBreakerList, user.TieBreaker)
 			tieBreakerUserIndex = append(tieBreakerUserIndex, i)
 
-			tieBreakerOrder := rank(tieBreakerList, true)
+			tieBreakerOrder := util.Rank(tieBreakerList, true)
 			for j, index := range tieBreakerUserIndex {
 				usersToSave[index].Rank += tieBreakerOrder[j]
 				usersToSave[index].Rank -= 1
