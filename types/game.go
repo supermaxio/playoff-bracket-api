@@ -9,5 +9,4 @@ type Game struct {
 	AwayTeam      string `json:"away_team" bson:"away_team"`
 	HomeTeam      string `json:"home_team" bson:"home_team"`
 	Winner        string `json:"winner" bson:"winner"`
-	Finished      bool   `json:"finished" bson:"finished"`
 }
