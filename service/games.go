@@ -221,12 +221,14 @@ func RefreshScores() ([]types.Game, error) {
 	var usersToSave []types.User
 	var scoresList []int
 
+	gamesToScoreOff := append(gamesInDB, gamesToSave...)
+	
 	// Calculate bracket scores from games
 	for _, bracket := range bracketsInDB {
 		if bracket.SuperBowlChampion != "" {
 			for _, user := range usersInDB {
 				if bracket.Username == user.Username {
-					newScore, newTieBreaker := getScoreFromBracket(bracket, gamesToSave)
+					newScore, newTieBreaker := getScoreFromBracket(bracket, gamesToScoreOff)
 					scoresList = append(scoresList, newScore)
 					usersToSave = append(usersToSave, types.User{
 						Username:   user.Username,
