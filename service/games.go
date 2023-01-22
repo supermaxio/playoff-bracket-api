@@ -218,17 +218,45 @@ func RefreshScores() ([]types.Game, error) {
 	// 	},
 	// }
 
+	// Update game in db if exists and changed or create game
+	for _, gameToSave := range gamesToSave {
+		isNewGame := true
+		for _, gameInDB := range gamesInDB {
+			if gameToSave.ID == gameInDB.ID {
+				if !reflect.DeepEqual(gameToSave, gameInDB) {
+					_, err := database.UpdateGame(gameToSave.ID, gameToSave)
+					if err != nil {
+						return []types.Game{}, err
+					}
+				}
+
+				isNewGame = false
+				break
+			}
+		}
+
+		if isNewGame {
+			database.CreateGame(gameToSave)
+			if err != nil {
+				return []types.Game{}, err
+			}
+		}
+	}
+
 	var usersToSave []types.User
 	var scoresList []int
 
-	gamesToScoreOff := append(gamesInDB, gamesToSave...)
-	
+	newGamesInDB, err := database.GetGames()
+	if err != nil {
+		return []types.Game{}, err
+	}
+
 	// Calculate bracket scores from games
 	for _, bracket := range bracketsInDB {
 		if bracket.SuperBowlChampion != "" {
 			for _, user := range usersInDB {
 				if bracket.Username == user.Username {
-					newScore, newTieBreaker := getScoreFromBracket(bracket, gamesToScoreOff)
+					newScore, newTieBreaker := getScoreFromBracket(bracket, newGamesInDB)
 					scoresList = append(scoresList, newScore)
 					usersToSave = append(usersToSave, types.User{
 						Username:   user.Username,
@@ -260,32 +288,7 @@ func RefreshScores() ([]types.Game, error) {
 		}
 	}
 
-	// Update game in db if exists and changed or create game
-	for _, gameToSave := range gamesToSave {
-		isNewGame := true
-		for _, gameInDB := range gamesInDB {
-			if gameToSave.ID == gameInDB.ID {
-				if !reflect.DeepEqual(gameToSave, gameInDB) {
-					_, err := database.UpdateGame(gameToSave.ID, gameToSave)
-					if err != nil {
-						return []types.Game{}, err
-					}
-				}
-
-				isNewGame = false
-				break
-			}
-		}
-
-		if isNewGame {
-			database.CreateGame(gameToSave)
-			if err != nil {
-				return []types.Game{}, err
-			}
-		}
-	}
-
-	return gamesToSave, nil
+	return newGamesInDB, nil
 }
 
 func getTeamInfo(teams []types.Competitor, homeAway string) (teamName string, score int, isWinner bool) {
