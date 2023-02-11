@@ -362,7 +362,7 @@ func getBracketGameName(homeTeam string, weekNumber int, teamsInRank []types.Con
 	case 4:
 		return "pro_bowl"
 	case 5:
-		return "suber_bowl"
+		return "super_bowl"
 	default:
 		return ""
 	}
