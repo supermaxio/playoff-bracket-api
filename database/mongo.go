@@ -29,16 +29,18 @@ func MongoConnect() {
 func MongoPing() {
 	if err := mongoClient.Ping(context.TODO(), readpref.Primary()); err != nil {
 		MongoDisconnect()
-		panic(err)
-		// TODO Remove at some point
+		
+		log.Println("Could not ping mongo db.")
+		return
 	}
 	log.Println("Successfully pinged mongo db.")
 }
 
 func MongoDisconnect() {
 	if err := mongoClient.Disconnect(context.TODO()); err != nil {
-		panic(err)
-		// TODO Remove at some point
+
+		log.Println("Could disconnect from mongo db. Or never actually connected")
+		return
 	}
 	log.Println("Successfully Disconnected from mongo db.")
 }
