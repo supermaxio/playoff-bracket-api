@@ -28,7 +28,7 @@ func EspnScoreboard() (types.EspnScoreboard, error) {
 
 func EspnTeamRecord(teamId string) (types.EspnTeamRecord, error) {
 	teamRecordResponse := types.EspnTeamRecord{}
-	resp, err := ApiGetRequest(fmt.Sprintf("http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2022/types/2/teams/%s/record?lang=en&region=us", teamId))
+	resp, err := ApiGetRequest(fmt.Sprintf("http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2023/types/2/teams/%s/record?lang=en&region=us", teamId))
 	if err != nil {
 		return types.EspnTeamRecord{}, err
 	}
