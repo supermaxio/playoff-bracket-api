@@ -253,7 +253,7 @@ func RefreshScores() ([]types.Game, error) {
 
 	// Calculate bracket scores from games
 	for _, bracket := range bracketsInDB {
-		// if bracket.SuperBowlChampion != "" {
+		if bracket.SuperBowlChampion != "" {
 			for _, user := range usersInDB {
 				if bracket.Username == user.Username {
 					newScore, newTieBreaker := getScoreFromBracket(bracket, newGamesInDB)
@@ -265,7 +265,7 @@ func RefreshScores() ([]types.Game, error) {
 					})
 				}
 			}
-		// }
+		}
 	}
 
 	// rank users by score
