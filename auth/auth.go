@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -41,7 +41,7 @@ var globalClaims Claims
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var user types.User
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := io.ReadAll(r.Body)
 	err := json.Unmarshal(body, &user)
 	if err != nil {
 		customerrors.HttpError(w, r, http.StatusInternalServerError, "Internal server error", err)
@@ -102,7 +102,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Declare the expiration time of the token
 	// here, we have kept it as 5 minutes
-	expirationTime := time.Now().Add(24 * time.Hour)
+	expirationTime := time.Now().Add(1200 * time.Hour)
 	// Create the JWT claims, which includes the username and expiry time
 	claims := &Claims{
 		Username: creds.Username,
@@ -177,7 +177,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	// (END) The code until this point is the same as the first part of the `Welcome` route
 
 	// Now, create a new token for the current use, with a renewed expiration time
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := time.Now().Add(1200 * time.Hour)
 	claims.ExpiresAt = jwt.NewNumericDate(expirationTime)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtKey)

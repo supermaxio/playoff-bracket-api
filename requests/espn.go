@@ -3,7 +3,7 @@ package requests
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 
 	"github.com/supermaxio/nflplayoffbracket/types"
 )
@@ -16,7 +16,10 @@ func EspnScoreboard() (types.EspnScoreboard, error) {
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return types.EspnScoreboard{}, err
+	}
 
 	err = json.Unmarshal(body, &scoreboardResponse)
 	if err != nil {
@@ -34,7 +37,10 @@ func EspnTeamRecord(teamId string) (types.EspnTeamRecord, error) {
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return types.EspnTeamRecord{}, err
+	}
 
 	err = json.Unmarshal(body, &teamRecordResponse)
 	if err != nil {
