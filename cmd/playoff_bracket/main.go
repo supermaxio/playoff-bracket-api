@@ -14,6 +14,7 @@ import (
 	"github.com/supermaxio/nflplayoffbracket/config"
 	"github.com/supermaxio/nflplayoffbracket/database"
 	"github.com/supermaxio/nflplayoffbracket/router"
+	"github.com/supermaxio/nflplayoffbracket/service"
 )
 
 func main() {
@@ -23,6 +24,34 @@ func main() {
 
 	// Ping db
 	database.MongoConnect()
+
+	// Setup a ticker that triggers every minute
+    ticker := time.NewTicker(1 * time.Minute)
+    defer ticker.Stop()
+
+    // Context for graceful shutdown
+    ctx, cancel := context.WithCancel(context.Background())
+    defer cancel()
+
+	// Goroutine for refreshing scores
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				// Call your function here
+				_, err := service.RefreshScores()
+				if err != nil {
+					fmt.Println("Error refreshing scores:", err)
+				} else {
+					fmt.Println("refreshed the scores!")
+				}
+			case <-ctx.Done():
+				// Context was cancelled, exit the goroutine
+                fmt.Println("Refresh scores goroutine exiting...")
+				return
+			}
+		}
+	}()
 
 	// Set up api router
 	var wait time.Duration
@@ -72,9 +101,11 @@ func main() {
 		log.Println("Received SIGQUIT, shutting down...")
 	}
 
-	// Create a deadline to wait for.
-	ctx, cancel := context.WithTimeout(context.Background(), wait)
-	defer cancel()
+	log.Println("Signal the goroutine to stop")
+    // Cancel the context, which should unblock ctx.Done()
+	cancel() 
+
+	log.Println("Create a deadline to wait for.")
 
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.

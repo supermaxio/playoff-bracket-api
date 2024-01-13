@@ -9,22 +9,22 @@ import (
 )
 
 func GetGames(w http.ResponseWriter, r *http.Request) {
-	standings, err := service.GetGames()
+	games, err := service.GetGames()
 	if err != nil {
 		customerrors.HttpError(w, r, http.StatusBadRequest, "error while getting games", err)
 		return
 	}
 
-	json.NewEncoder(w).Encode(standings)
+	json.NewEncoder(w).Encode(games)
 }
 
 func RefreshScores(w http.ResponseWriter, r *http.Request) {
-	standings, err := service.RefreshScores()
+	games, err := service.RefreshScores()
 	if err != nil {
 		customerrors.HttpError(w, r, http.StatusBadRequest, "error while refreshing scores", err)
 		return
 
 	}
 
-	json.NewEncoder(w).Encode(standings)
+	json.NewEncoder(w).Encode(games)
 }
