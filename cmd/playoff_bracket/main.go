@@ -42,8 +42,6 @@ func main() {
 				_, err := service.RefreshScores()
 				if err != nil {
 					fmt.Println("Error refreshing scores:", err)
-				} else {
-					fmt.Println("refreshed the scores!")
 				}
 			case <-ctx.Done():
 				// Context was cancelled, exit the goroutine
