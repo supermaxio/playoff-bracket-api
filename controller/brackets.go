@@ -54,15 +54,15 @@ func BracketsController(w http.ResponseWriter, r *http.Request) {
 		case "PUT":
 			json.NewDecoder(r.Body).Decode(&bracket)
 
-			bracket.Username = username
-			bracketToReturn, err := service.UpdateBracket(bracket)
-			if err != nil {
-				err := errors.New("unable to update bracket at this time")
-				customerrors.HttpError(w, r, http.StatusBadRequest, err.Error(), err)
-				return
-			}
+			// bracket.Username = username
+			// bracketToReturn, err := service.UpdateBracket(bracket)
+			// if err != nil {
+			err := errors.New("unable to update bracket at this time")
+			customerrors.HttpError(w, r, http.StatusBadRequest, err.Error(), err)
+			return
+			// }
 
-			json.NewEncoder(w).Encode(bracketToReturn)
+			// json.NewEncoder(w).Encode(bracketToReturn)
 		case "DELETE":
 			err := service.DeleteBracket(username)
 			if err != nil {
