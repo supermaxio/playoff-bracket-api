@@ -6,6 +6,7 @@ type User struct {
 	Score      int    `bson:"score"`
 	Rank       int    `bson:"rank"`
 	TieBreaker int    `bson:"tie_breaker"`
+	Champion   int    `bson:"champion"`
 }
 
 type UserResponse struct {
@@ -13,6 +14,7 @@ type UserResponse struct {
 	Score      int    `bson:"score"`
 	Rank       int    `bson:"rank"`
 	TieBreaker int    `bson:"tie_breaker"`
+	Champion   int    `bson:"champion"`
 }
 
 type UserUpdate struct {
@@ -26,5 +28,6 @@ func (u *User) Response() (userResponse UserResponse) {
 	userResponse.Rank = u.Rank
 	userResponse.Score = u.Score
 	userResponse.TieBreaker = u.TieBreaker
+	userResponse.Champion = u.Champion
 	return
 }
